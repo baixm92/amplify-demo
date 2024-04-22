@@ -14,6 +14,9 @@
     "categories": {
       "api": {
         "reactaws": {}
+      },
+      "auth": {
+        "reactaws932d5082": {}
       }
     }
   }

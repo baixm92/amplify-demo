@@ -5,11 +5,22 @@ import { generateClient } from "aws-amplify/api";
 import { createTodo } from "./graphql/mutations";
 import { listTodos } from "./graphql/queries";
 import { type CreateTodoInput, type Todo } from "./API";
+import {
+  withAuthenticator,
+  Button,
+  Heading,
+  UseAuthenticator,
+} from "@aws-amplify/ui-react";
+import "@aws-amplify/ui-react/styles.css";
+import { AuthUser, getCurrentUser } from "aws-amplify/auth";
 
 const initialState: CreateTodoInput = { name: "", description: "" };
 const client = generateClient();
-
-const App = () => {
+type AppProps = {
+  signOut?: UseAuthenticator["signOut"]; //() => void;
+  user?: AuthUser;
+};
+const App: React.FC<AppProps> = ({ signOut, user }) => {
   const [formState, setFormState] = useState<CreateTodoInput>(initialState);
   const [todos, setTodos] = useState<Todo[] | CreateTodoInput[]>([]);
 
@@ -26,6 +37,17 @@ const App = () => {
       setTodos(todos);
     } catch (err) {
       console.log("error fetching todos");
+    }
+  }
+
+  async function currentAuthenticatedUser() {
+    try {
+      const { username, userId, signInDetails } = await getCurrentUser();
+      console.log(`The username: ${username}`);
+      console.log(`The userId: ${userId}`);
+      console.log(`The signInDetails: ${signInDetails}`, signInDetails);
+    } catch (err) {
+      console.log(err);
     }
   }
 
@@ -48,6 +70,8 @@ const App = () => {
 
   return (
     <div style={styles.container}>
+      <Heading level={1}>Hello {user?.username}</Heading>
+      <Button onClick={signOut}>Sign out</Button>
       <h2>Amplify Todos</h2>
       <input
         onChange={(event) =>
@@ -67,6 +91,9 @@ const App = () => {
       />
       <button style={styles.button} onClick={addTodo}>
         Create Todo
+      </button>
+      <button style={styles.button} onClick={currentAuthenticatedUser}>
+        getCurrentUser
       </button>
       {todos.map((todo, index) => (
         <div key={todo.id ? todo.id : index} style={styles.todo}>
@@ -106,4 +133,4 @@ const styles = {
   },
 } as const;
 
-export default App;
+export default withAuthenticator(App);
